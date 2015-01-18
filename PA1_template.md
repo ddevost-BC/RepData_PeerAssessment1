@@ -10,7 +10,8 @@ output: html_document
 ###1. Loading and preprocessing the data
 *Unzip the file and format the date column as date class*
 
-```{r Load_Process_data}
+
+```r
 unzip("C:/Users/ddevost/OneDrive for Business/activity.zip", exdir = "./data")
 Existdata <- read.csv("./data/activity.csv")
 #Convert Attributes to Proper Data Types
@@ -22,7 +23,8 @@ Existdata[,"interval"] <- as.numeric(Existdata[,"interval"])
 ##2. What is mean total number of steps taken per day?
   *A) Make a histogram of the total number of steps taken each day*
   
-```{r Histogram}
+
+```r
 #Aggregate Total Steps by Date
 ExistdataH <- aggregate(Existdata[,"steps"],by=list(Existdata[,"date"]),FUN="sum",na.rm=FALSE)
 #Rename Columns in Aggregate Table
@@ -31,21 +33,34 @@ names(ExistdataH) <- c("date","totalsteps")
 hist(ExistdataH[,"totalsteps"],col="orange",main="Total Steps by day",xlab="Total Steps")
 ```
 
+![plot of chunk Histogram](figure/Histogram-1.png) 
+
  *B) Calculate and report the mean and median total number of steps taken per day*
  
  Mean of Total Steps:
-```{r}
+
+```r
  mean(ExistdataH[,"totalsteps"],na.rm=TRUE)
 ```
+
+```
+## [1] 10766.19
+```
  Median of Total Steps:
-```{r}
+
+```r
  median(ExistdataH[,"totalsteps"],na.rm=TRUE)
+```
+
+```
+## [1] 10765
 ```
 
 ##3. What is the average daily activity pattern?
   *A) Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)*
 
-```{r Time_Series_Plot}
+
+```r
 #Aggregate Average Steps by Interval
 ExistdataAvg <- aggregate(Existdata[,"steps"],by=list(Existdata[,"interval"]),FUN="mean",na.rm=TRUE)
 #Rename Columns in Aggregate Table
@@ -54,19 +69,28 @@ names(ExistdataAvg) <- c("interval","averagesteps")
 plot(averagesteps ~ interval, ExistdataAvg, type = "l", col="red",main="Average Steps by Interval",xlab="Interval", ylab="Average Steps")
 ```
 
+![plot of chunk Time_Series_Plot](figure/Time_Series_Plot-1.png) 
+
 *B) Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?*
 
-```{r Interval}
+
+```r
 #Find the Index of the Max Average Steps
 maxind <- which.max(ExistdataAvg[,"averagesteps"])
 #Return Data for Max Average Steps Interval
 ExistdataAvg[maxind,]
 ```
 
+```
+##     interval averagesteps
+## 104      835     206.1698
+```
+
 ##4. Inputing missing values
   *A) Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)*
 
-```{r Data_Copy}
+
+```r
 #Create a Copy of the Existing data to Fill in NA Steps Values
 Existdatacopy <- Existdata
 #Find NA Values for Steps
@@ -74,10 +98,15 @@ NAind <- which(is.na(Existdatacopy[,"steps"]))
 length(NAind)
 ```
 
+```
+## [1] 2304
+```
+
 *Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.*
   - Strategy: I will use the mean across all days for the 5-minute interval which the NA occurs.
   
-```{r Fill_NA}
+
+```r
 #Fill in NA Values for Steps with Average Steps by Interval
 for(i in NAind){
   Existdatacopy["steps"][i,] <- ExistdataAvg[which(ExistdataAvg[,"interval"]==Existdatacopy[i,"interval"]),"averagesteps"]
@@ -86,9 +115,14 @@ for(i in NAind){
 which(is.na(Existdatacopy[,"steps"]))
 ```
 
+```
+## integer(0)
+```
+
 *B) Create a new dataset that is equal to the original dataset but with estimates for the missing data filled in.*
 
-```{r New_Data_Set}
+
+```r
 #Aggregate Total Steps by Date in New Data Set
 NewData <- aggregate(Existdatacopy[,"steps"],by=list(Existdatacopy[,"date"]),FUN="sum",na.rm=FALSE)
 #Rename Columns in Aggregate Table in New Data Set
@@ -97,12 +131,29 @@ names(NewData) <- c("date","totalsteps")
 
 *C) Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day.*
 
-```{r New_Histogrtaph}
+
+```r
 #Plot Histogram of Total Steps Per Day in New Data Set
 hist(NewData[,"totalsteps"],col="brown",main="Total Steps by day(New Data Set)",xlab="Total Steps")
+```
+
+![plot of chunk New_Histogrtaph](figure/New_Histogrtaph-1.png) 
+
+```r
 #Calculate the Mean Total Steps Per Day
 mean(NewData[,"totalsteps"])
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(NewData[,"totalsteps"])
+```
+
+```
+## [1] 10766.19
 ```
 *Do these values differ from the estimates from the first part of the assignment?*
 
@@ -117,7 +168,8 @@ Answer: Yes. The average number of steps taken during the office hour (10:00AM -
 
   *A) Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.*
 
-```{r Weekday_Weekend_TS_Plot}
+
+```r
 #Add New Factor Variable to New Data Set to Denote Weekend or Weekday Category
 Existdatacopy[,"daycat"] <- ifelse(weekdays(Existdatacopy[,"date"]) %in% c("Saturday","Sunday"),"Weekend","Weekday")
 #Aggregate Average Steps by Interval and Category of Weekend or Weekday
@@ -129,3 +181,5 @@ library(lattice)
 #Plot Time Series of Average Steps by Interval
 xyplot(averagesteps ~ interval|daycat,data=ExistdataAvgN,layout=c(1,2),type="l",main="Average Steps by Interval and Category of Day",xlab="Interval",ylab="Average Steps")
 ```
+
+![plot of chunk Weekday_Weekend_TS_Plot](figure/Weekday_Weekend_TS_Plot-1.png) 
